@@ -14,3 +14,13 @@ manipulating indi device parameters correctly.
 ## Usage
 
 On the target machine, run the indiserver with the drivers you are using.
+For example on the remote machine:
+```
+indiserver -v indi_eqmod_telescope indi_gpsd
+```
+
+Then start the viewer on the local machine:
+```
+python simple_gui.py <ipaddress> <port>
+```
+where you replace ipaddress and port with those of the running indiserver.
