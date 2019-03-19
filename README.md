@@ -1,8 +1,8 @@
 # indi-viewer
 
 Simple GUI tool for visualising parameters of devices running remotely or locally
-on an indiserver. Useful to track and monitor if your own written software is
-manipulating indi device parameters correctly.
+on an indiserver. Very useful as a single point of contact tool to visualise all
+available properties and realtime values of a device running on the indiserver.
 
 ## Prerequisites
 
@@ -11,6 +11,16 @@ manipulating indi device parameters correctly.
 
 ## Features
 
+The program uses the PyIndi.BaseClient standard implementation (more info here)
+and catches new devices, properties and property values that become available.
+
+When a new property is received, it is linked to it's corresponding device and
+put in the right place in the main treeview widget. Messages that are passed via
+the PyIndi.BaseClient are caught and displayed in a QTextBrowser widget.
+
+A screenshot of the GUI is illustrated below:
+
+![screenshot](img/screenshot.png)
 
 You can edit simple_gui.ui with QT Designer and edit it to your liking.
 
