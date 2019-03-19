@@ -19,30 +19,6 @@ from PyQt5.QtWidgets import *
 
 #start the server with: "indiserver -v indi_eqmod_telescope indi_gpsd"
 
-#INDI property list
-#------------------------------
-TELESCOPE_SIMPROP = "SIMULATION"
-POLLING_PROP = "POLLING_PERIOD"
-GPS_REFRESH_PROP = "GPS_REFRESH_PERIOD"
-ACTIVE_DEVICES_PROP = "ACTIVE_DEVICES"
-#------------------------------
-
-
-#Global AZEQ mount parameters:
-#------------------------------
-mountName="EQMod Mount"
-mountConnection = None
-mountDevice = None
-#------------------------------
-
-
-#Global GPS parameters:
-#------------------------------
-gpsName="GPSD"
-gpsConnection = None
-gpsDevice = None
-#------------------------------
-
 
 hostIndi = "localhost"
 portIndi = 7624
@@ -69,50 +45,33 @@ class IndiClient(PyIndi.BaseClient):
 		self.sender = SenderObject()
 
 	def newDevice(self, d):
-		global mountDevice
-		global gpsDevice
-		if (d.getDeviceName()==mountName):
-			mountDevice=d #We catch the mount device
-		elif (d.getDeviceName()==gpsName):
-			gpsDevice=d #We catch the gps device
-		print("New device ", d.getDeviceName())
 		self.sender.newDevice.emit(d)
 
 	def newProperty(self, p):
-		global mountName
-		global mountConnection
-		global gpsName
-		global gpsConnection
-
-		# we catch the "CONNECTION" property of the mount and the GPS
-		if (p.getDeviceName()==mountName and p.getName() == "CONNECTION"):
-			mountConnection=p.getSwitch()
-		elif (p.getDeviceName()==gpsName and p.getName() == "CONNECTION"):
-			gpsConnection=p.getSwitch()
-		print("New property ", p.getName(), " for device ", p.getDeviceName())
 		self.sender.newProperty.emit(p)
 
 	def removeProperty(self, p):
 		self.sender.removeProperty.emit(p.getName(), p.getDeviceName())
 
 	def newBLOB(self, bp):
-		self.sender.newBlob.emit(bp)
+		#self.sender.newBlob.emit(bp)
+		self.sender.newPropertyValue(bp)
 
 	def newSwitch(self, svp):
-		self.sender.newSwitch.emit(svp)
+		#self.sender.newSwitch.emit(svp)
+		self.sender.newPropertyValue(svp)
 
 	def newNumber(self, nvp):
-		global newval
-		global prop
-		prop=nvp
-		newval=True
-		self.sender.newNumber.emit(nvp)
+		#self.sender.newNumber.emit(nvp)
+		self.sender.newPropertyValue(nvp)
 
 	def newText(self, tvp):
-		self.sender.newText.emit(tvp)
+		#self.sender.newText.emit(tvp)
+		self.sender.newPropertyValue(tvp)
 
 	def newLight(self, lvp):
-		self.sender.newLight.emit(lvp)
+		#self.sender.newLight.emit(lvp)
+		self.sender.newPropertyValue(lvp)
 
 	def newMessage(self, d, m):
 		self.sender.newMessage.emit(d, m)
@@ -134,10 +93,6 @@ class Main(QMainWindow):
 		self.setWindowTitle('INDI TELESCOPE DRIVER MONITORING')
 		self.BUTTON_EXPANDALL.clicked.connect(self.expandAll)
 		self.BUTTON_COLLAPSEALL.clicked.connect(self.collapseAll)
-		#self.BUTTON_ENABLESIM.clicked.connect(self.enableSim)
-		#self.BUTTON_DISABLESIM.clicked.connect(self.disableSim)
-		#self.BUTTON_CONNECT.clicked.connect(self.connect)
-		#self.BUTTON_DISCONNECT.clicked.connect(self.disconnect)
 
 		self.model = QStandardItemModel()
 		self.rootNode = self.model.invisibleRootItem()
@@ -147,32 +102,17 @@ class Main(QMainWindow):
 		self.indiclient.sender.newDevice.connect(self.newDevice)
 		self.indiclient.sender.newProperty.connect(self.newProperty)
 		self.indiclient.sender.removeProperty.connect(self.removeProperty)
-		self.indiclient.sender.newBlob.connect(self.newBlob)
-		self.indiclient.sender.newSwitch.connect(self.newSwitch)
-		self.indiclient.sender.newNumber.connect(self.newNumber)
-		self.indiclient.sender.newText.connect(self.newText)
-		self.indiclient.sender.newLight.connect(self.newLight)
+		self.indiclient.sender.newPropertyValue.connect(self.newPropertyValue)
+		#self.indiclient.sender.newBlob.connect(self.newBlob)
+		#self.indiclient.sender.newSwitch.connect(self.newSwitch)
+		#self.indiclient.sender.newNumber.connect(self.newNumber)
+		#self.indiclient.sender.newText.connect(self.newText)
+		#self.indiclient.sender.newLight.connect(self.newLight)
 		self.indiclient.sender.newMessage.connect(self.newMessage)
 		self.indiclient.sender.serverConnected.connect(self.serverConnected)
 
 		self.indiclient.setServer(hostIndi, portIndi)
-		#self.indiclient.watchDevice()
 		self.indiclient.connectServer()
-
-		#Wait until gps and mount connection propetries are available
-		while not(mountConnection):
-			time.sleep(0.05)
-
-		while not(gpsConnection):
-			time.sleep(0.05)
-
-		self.enableSim() #Set mount to simulation mode
-		self.connectDevice(mountDevice, mountConnection)
-		self.setPolling(150.0) #Set polling of 150 ms
-
-		self.connectDevice(gpsDevice, gpsConnection)
-		self.setGpsUpdate(1.0) #Set gps updaterate to 1 second
-		self.setSnoopDevices(mountDevice, "GPSD", "Dome Simulator") #Set mount to SNOOP properties from GPSD
 
 	def expandAll(self):
 		self.treeview.expandAll()
@@ -180,74 +120,17 @@ class Main(QMainWindow):
 	def collapseAll(self):
 		self.treeview.collapseAll()
 
-	def enableSim(self):
-		sim=mountDevice.getSwitch(TELESCOPE_SIMPROP)
-		while not(sim):
-			time.sleep(0.005)
-			sim=mountDevice.getSwitch(TELESCOPE_SIMPROP)
-
-		sim[0].s=PyIndi.ISS_ON  # the "ENABLE" switch
-		sim[1].s=PyIndi.ISS_OFF # the "DISABLE" switch
-		self.indiclient.sendNewSwitch(sim)
-
-	def disableSim(self):
-		sim=mountDevice.getSwitch(TELESCOPE_SIMPROP)
-		while not(sim):
-			time.sleep(0.005)
-			sim=mountDevice.getSwitch(TELESCOPE_SIMPROP)
-
-		sim[0].s=PyIndi.ISS_OFF  # the "ENABLE" switch
-		sim[1].s=PyIndi.ISS_ON # the "DISABLE" switch
-		self.indiclient.sendNewSwitch(sim)
-
-	def connectDevice(self, deviceProperty, connectionProperty):
-		if not(deviceProperty.isConnected()):
-			connectionProperty[0].s=PyIndi.ISS_ON
-			connectionProperty[1].s=PyIndi.ISS_OFF
-			self.indiclient.sendNewSwitch(connectionProperty)
-
-	def disconnectDevice(self, deviceProperty, connectionProperty):
-		if 	deviceProperty.isConnected():
-			connectionProperty[0].s=PyIndi.ISS_OFF
-			connectionProperty[1].s=PyIndi.ISS_ON
-			self.indiclient.sendNewSwitch(connectionProperty)
-
-	def setPolling(self, float):
-		p=mountDevice.getNumber(POLLING_PROP)
-		while not(p):
-			time.sleep(0.5)
-			p=mountDevice.getNumber(POLLING_PROP)
-
-		p[0].value=float  # the "ENABLE" switch
-		self.indiclient.sendNewNumber(p)
-
-	def setGpsUpdate(self, period):
-		p=gpsDevice.getNumber(GPS_REFRESH_PROP)
-		while not(p):
-			time.sleep(0.5)
-			p=gpsDevice.getNumber(GPS_REFRESH_PROP)
-
-		p[0].value=period  # the "ENABLE" switch
-		self.indiclient.sendNewNumber(p)
-
-	def setSnoopDevices(self, mainDevice, snoop1, snoop2): #Not snoopdogg
-		p=mainDevice.getText(ACTIVE_DEVICES_PROP)
-		while not(p):
-			time.sleep(0.01)
-			p=mainDevice.getText(ACTIVE_DEVICES_PROP)
-
-		p[0].text = snoop1
-		p[1].text = snoop2
-		self.indiclient.sendNewText(p)
-
 	def newDevice(self, d):
 		device = QStandardItem(d.getDeviceName())
-		self.rootNode.appendRow([ device, None ])
+		self.rootNode.appendRow([device, None])
 		self.treeview.setModel(self.model)
 
 	def newProperty(self, p):
+		#When we receive a new property from the SenderObject we first make a new QStandardItem
 		property = QStandardItem(p.getName())
+		#Then we check which device is related to the property and we look it up in the model
 		devices = self.model.findItems(p.getDeviceName(), QtCore.Qt.MatchExactly)
+		#There will only be one device result so we extract it from the list of results
 		device = devices[0]
 
 		if p.getType()==PyIndi.INDI_TEXT:
@@ -293,6 +176,8 @@ class Main(QMainWindow):
 					device.removeRow(i)
 			self.treeview.setModel(self.model)
 
+	'''
+
 	def newBlob(self, bp):
 		pass
 
@@ -308,14 +193,7 @@ class Main(QMainWindow):
 						item.setChild(j, 1, QStandardItem(str(s.s)))
 						j = j + 1
 		self.treeview.setModel(self.model)
-		if svp.device == gpsName:
-			if svp.name == 'CONNECTION':
-				if svp[0].s == PyIndi.ISS_ON:
-					self.LABEL_GPSCONNECTED.setText("GPS ONLINE")
-					self.LABEL_GPSCONNECTED.setStyleSheet("background-color: rgb(0, 255, 0);")
-				else:
-					self.LABEL_GPSCONNECTED.setText("GPS OFFLINE")
-					self.LABEL_GPSCONNECTED.setStyleSheet("background-color: rgb(255, 0, 0);")
+
 
 	def newNumber(self, nvp):
 		devices = self.model.findItems(nvp.device, QtCore.Qt.MatchExactly)
@@ -331,20 +209,6 @@ class Main(QMainWindow):
 						j = j + 1
 		self.treeview.setModel(self.model)
 
-		if nvp.device == gpsName:
-			if nvp.name == 'GEOGRAPHIC_COORD':
-				self.LABEL_LATITUDE.setText('Latitude: ' + 	str(nvp[0].value) )
-				self.LABEL_LONGITUDE.setText('Longitude: ' + str(nvp[1].value))
-				self.LABEL_ELEVATION.setText('Elevation: ' + str(nvp[2].value))
-			if nvp.name == 'CONNECTION':
-				if nvp[0].value == 1:
-					self.LABEL_GPSCONNECTED.setText("GPS ONLINE")
-					self.LABEL_GPSCONNECTED.setStyleSheet("background-color: rgb(0, 255, 0);")
-				else:
-					self.LABEL_GPSCONNECTED.setText("GPS OFFLINE")
-					self.LABEL_GPSCONNECTED.setStyleSheet("background-color: rgb(255, 0, 0);")
-
-
 
 	def newText(self, tvp):
 		devices = self.model.findItems(tvp.device, QtCore.Qt.MatchExactly)
@@ -359,17 +223,6 @@ class Main(QMainWindow):
 						j = j + 1
 		self.treeview.setModel(self.model)
 
-		if tvp.device == gpsName:
-			if tvp.name == 'TIME_UTC':
-				self.LABEL_UTCTIME.setText('UTC Time: ' + tvp[0].text)
-				self.LABEL_UTCOFFSET.setText('UTC Offset: ' + tvp[1].text)
-			if tvp.name == 'GPS_STATUS':
-				if tvp[0].text == '3D FIX':
-					self.LABEL_GPSFIX.setText("3D FIX")
-					self.LABEL_GPSFIX.setStyleSheet("background-color: rgb(0, 255, 0);")
-				else:
-					self.LABEL_GPSFIX.setText("NO FIX")
-					self.LABEL_GPSFIX.setStyleSheet("background-color: rgb(255, 0, 0);")
 
 	def newLight(self, lvp):
 		devices = self.model.findItems(lvp.device, QtCore.Qt.MatchExactly)
@@ -382,6 +235,33 @@ class Main(QMainWindow):
 					for l in lvp:
 						item.setChild(j, 1, QStandardItem(str(l.s)))
 						j = j + 1
+		self.treeview.setModel(self.model)
+
+		'''
+
+	def newPropertyValue(self, pv):
+		devices = self.model.findItems(pv.device, QtCore.Qt.MatchExactly)
+		device = devices[0]
+		j = 0
+		for i in range(0, device.rowCount()):
+			item = device.child(i, 0)
+			if item != None:
+				if item.text() == pv.name:
+					for v in pv:
+						if pv.getType == PyIndi.INDI_TEXT:
+							item.setChild(j, 1, QStandardItem(str(v.text)))
+						elif pv.getType == PyIndi.INDI_NUMBER:
+							item.setChild(j, 1, QStandardItem(str(v.value)))
+						elif pv.getType == PyIndi.INDI_SWITCH:
+							item.setChild(j, 1, QStandardItem(str(v.s)))
+						elif pv.getType ==PyIndi.INDI_LIGHT:
+							item.setChild(j, 1, QStandardItem(str(v.s)))
+						else:
+							#We do not handle BLOBs
+							pass
+
+						j = j + 1
+		#We update the treeview
 		self.treeview.setModel(self.model)
 
 	def newMessage(self, d, m):
@@ -408,6 +288,7 @@ class SenderObject(QtCore.QObject):
 	newLight = pyqtSignal(object)
 	newMessage = pyqtSignal(object, object)
 	serverConnected = pyqtSignal(bool)
+	newPropertyValue = pyqtSignal(object)
 
 
 if __name__ == '__main__':

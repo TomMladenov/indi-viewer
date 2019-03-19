@@ -11,6 +11,9 @@ manipulating indi device parameters correctly.
 
 ## Features
 
+
+You can edit simple_gui.ui with QT Designer and edit it to your liking.
+
 ## Usage
 
 On the target machine, run the indiserver with the drivers you are using.
