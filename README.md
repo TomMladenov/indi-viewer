@@ -29,15 +29,16 @@ You can edit simple_gui.ui with QtDesigner and edit it to your liking.
 
 Either run indiserver remotely and the indi-viewer locally or run both locally.
 
-On the target machine, run the indiserver with the drivers you are using.
+On the target machine, run the indiserver with the drivers you are normally using.
+
 For example on the remote machine:
 ```
 indiserver -v indi_eqmod_telescope indi_gpsd
 ```
 
-Then start the viewer on the local machine:
+Then start indi-viewer on another machine connected to the network:
 ```
-python simple_gui.py <ipaddress> <port>
+python indi-viewer.py <ipaddress> <port>
 ```
 where you replace ipaddress and port with those of the running indiserver.
 
