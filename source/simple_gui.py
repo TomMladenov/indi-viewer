@@ -23,22 +23,6 @@ from PyQt5.QtWidgets import *
 hostIndi = "localhost"
 portIndi = 7624
 
-def strISState(s):
-	if (s == PyIndi.ISS_OFF):
-		return "Off"
-	else:
-		return "On"
-def strIPState(s):
-	if (s == PyIndi.IPS_IDLE):
-		return "Idle"
-	elif (s == PyIndi.IPS_OK):
-		return "Ok"
-	elif (s == PyIndi.IPS_BUSY):
-		return "Busy"
-	elif (s == PyIndi.IPS_ALERT):
-		return "Alert"
-
-
 class IndiClient(PyIndi.BaseClient):
 	def __init__(self):
 		super(IndiClient, self).__init__()
@@ -90,13 +74,13 @@ class Main(QMainWindow):
 	def __init__(self, parent = None):
 		super(Main, self).__init__(parent)
 		loadUi('simple_gui.ui', self)
-		self.setWindowTitle('INDI TELESCOPE DRIVER MONITORING')
+		self.setWindowTitle('indiviewer')
 		self.BUTTON_EXPANDALL.clicked.connect(self.expandAll)
 		self.BUTTON_COLLAPSEALL.clicked.connect(self.collapseAll)
 
 		self.model = QStandardItemModel()
 		self.rootNode = self.model.invisibleRootItem()
-		#self.treeview.setAlternatingRowColors(True)
+		self.treeview.setAlternatingRowColors(True)
 
 		self.indiclient=IndiClient()
 		self.indiclient.sender.newDevice.connect(self.newDevice)
@@ -177,7 +161,6 @@ class Main(QMainWindow):
 			self.treeview.setModel(self.model)
 
 	'''
-
 	def newBlob(self, bp):
 		pass
 
@@ -269,18 +252,15 @@ class Main(QMainWindow):
 
 	def serverConnected(self, status):
 		if status:
-			self.LABEL_SERVERSTATUS.setText("MAIN SERVER RUNNING")
-			self.LABEL_SERVERSTATUS.setStyleSheet("background-color: rgb(0, 255, 0);")
-			self.LABEL_IPINFO.setText(hostIndi + ":" + str(portIndi))
+			self.LOGGING_MESSAGE.append("Connected to server!")
 		else:
-			self.LABEL_SERVERSTATUS.setText("MAIN SERVER DOWN")
-			self.LABEL_SERVERSTATUS.setStyleSheet("background-color: rgb(255, 0, 0);")
+			self.LOGGING_MESSAGE.append("Disconnected from server!")
 
 
 class SenderObject(QtCore.QObject):
 	newDevice = pyqtSignal(object)
 	newProperty = pyqtSignal(object)
-	removeProperty = pyqtSignal(str, str) #single object didnt work
+	removeProperty = pyqtSignal(str, str) #single object didnt work for some reason
 	newBlob = pyqtSignal(object)
 	newSwitch = pyqtSignal(object)
 	newNumber = pyqtSignal(object)
