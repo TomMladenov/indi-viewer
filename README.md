@@ -11,7 +11,7 @@ available properties and realtime values of a device running on an indiserver.
 
 ## Features
 
-The program uses the PyIndi.BaseClient standard implementation [here](stdimplementation)
+The program uses the PyIndi.BaseClient standard implementation [here](https://indilib.org/support/tutorials/166-installing-and-using-the-python-pyndi-client-on-raspberry-pi.html)
 and catches new devices, properties and property values that become available.
 
 When a new property is received, it is linked to it's corresponding device and
@@ -47,4 +47,4 @@ them being manipulated by other indiclients such as KStars for example.
 
 ## Sources
 
-Definetely checkout [indilib](indilinkhere) and [KStars](kstarslinkhere).
+Definetely checkout [indilib](https://www.indilib.org) and [KStars](https://edu.kde.org/kstars/).
