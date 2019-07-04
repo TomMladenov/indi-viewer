@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on 16/05/2019
+This script is a server that can run on a remote machine and is intended for control of a TMCL enabled stepper motor
+"""
+
+__author__ = "Tom Mladenov"
+
 import PyIndi
 import time
 import os
@@ -16,11 +25,6 @@ import keyboard
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
-
-
-
-hostIndi = "localhost"
-portIndi = 7624
 
 class IndiClient(PyIndi.BaseClient):
 	def __init__(self):
@@ -70,6 +74,9 @@ class Main(QMainWindow):
 
 	started = False
 
+	host = None
+	port = None
+
 	def __init__(self, parent = None):
 		super(Main, self).__init__(parent)
 		loadUi('simple_gui.ui', self)
@@ -92,12 +99,27 @@ class Main(QMainWindow):
 		#self.indiclient.sender.newText.connect(self.newText)
 		#self.indiclient.sender.newLight.connect(self.newLight)
 
-
 		self.indiclient.sender.newMessage.connect(self.newMessage)
 		self.indiclient.sender.serverConnected.connect(self.serverConnected)
 
-		self.indiclient.setServer(hostIndi, portIndi)
-		self.indiclient.connectServer()
+	def connect(self):
+		host = self.host_box.text()
+		port = self.port_box.text()
+		self.indiclient.setServer(host, int(port))
+		succes = self.indiclient.connectServer()
+		if not succes:
+			self.link_label.setStyleSheet("background-color: rgb(255, 0, 0);")
+			self.link_label.setText('OFFLINE')
+		else:
+			self.link_label.setStyleSheet("background-color: rgb(0, 255, 0);")
+			self.link_label.setText('ONLINE')
+			self.host = host
+			self.port = port
+
+	def disconnect(self):
+		self.indiclient.disconnectServer()
+		self.host = None
+		self.port = None
 
 	def expandAll(self):
 		self.treeview.expandAll()
@@ -220,7 +242,6 @@ class Main(QMainWindow):
 						item.setChild(j, 1, QStandardItem(str(l.s)))
 						j = j + 1
 		self.treeview.setModel(self.model)
-
 		'''
 
 	def newPropertyValue(self, pv):
