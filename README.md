@@ -1,8 +1,9 @@
 # indi-viewer
 
-Simple GUI tool for visualising properties of devices running remotely or locally
-on an indiserver. Very useful as a single point of contact tool to visualise all
-available properties and realtime values of a device running on an indiserver.
+INDI stands for Instrument Neutral Distributed Interface.
+This repository is a simple GUI tool for visualising properties of devices running remotely or locally
+on an indiserver. Very useful as a single point tool to visualize all
+available properties and realtime values of multiple devices running on INDI.
 
 ## Prerequisites
 
@@ -23,27 +24,26 @@ A screenshot of the GUI is illustrated below:
 
 ![screenshot](img/screenshot.png)
 
-You can edit simple_gui.ui with QtDesigner and edit it to your liking.
+You can edit indi-viewer.ui with QtDesigner and edit it to your liking.
 
 ## Usage
 
-Either run indiserver remotely and the indi-viewer locally or run both locally.
-
-On the target machine, run the indiserver with the drivers you are normally using.
-
-For example on the remote machine:
+Simply run Kstars and start Ekos with your devices or simulator instances.
+Then run the GUI tool and configure the ip address and port (default 127.0.0.1:7624 for a local indiserver)
 ```
-indiserver -v indi_eqmod_telescope indi_gpsd
+python3 indi-viewer.py
+```
+
+
+Or you can also run indiserver directly and observe the instrument properties:
+```
+indiserver -v indi_simulator_telescope ccd_simulator
 ```
 
 Then start indi-viewer on another machine connected to the network:
 ```
-python indi-viewer.py <ipaddress> <port>
+python3 indi-viewer.py
 ```
-where you replace ipaddress and port with those of the running indiserver.
-
-Once connected you can monitor all the properties of your devices in realtime and watch
-them being manipulated by other indiclients such as KStars for example.
 
 ## Sources
 
