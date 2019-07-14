@@ -20,7 +20,7 @@ put in the right place in the main treeview widget. Messages that are passed via
 the PyIndi.BaseClient are caught and displayed in a QTextBrowser widget. When
 properties of devices are no longer available they are removed from the treeview.
 
-A screenshot of the GUI is illustrated below:
+A screenshot of the GUI running next to KStars is illustrated below:
 
 ![screenshot](img/screenshot.png)
 
@@ -28,7 +28,7 @@ You can edit indi-viewer.ui with QtDesigner and edit it to your liking.
 
 ## Usage
 
-Simply run Kstars and start Ekos with your devices or simulator instances.
+Simply run KStars and start Ekos with your devices or simulator instances.
 Then run the GUI tool and configure the ip address and port (default 127.0.0.1:7624 for a local indiserver)
 ```
 python3 indi-viewer.py
