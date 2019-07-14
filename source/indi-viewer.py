@@ -33,15 +33,12 @@ class IndiClient(PyIndi.BaseClient):
 		self.sender.removeProperty.emit(p.getName(), p.getDeviceName())
 
 	def newBLOB(self, bp):
-		#self.sender.newBlob.emit(bp)
 		self.sender.newBLOB.emit(bp)
 
 	def newSwitch(self, svp):
-		#self.sender.newSwitch.emit(svp)
 		self.sender.newSwitch.emit(svp)
 
 	def newNumber(self, nvp):
-		#self.sender.newNumber.emit(nvp)
 		self.sender.newNumber.emit(nvp)
 
 	def newText(self, tvp):
