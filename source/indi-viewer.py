@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on 16/05/2019
-This script is a server that can run on a remote machine and is intended for control of a TMCL enabled stepper motor
 """
 
 __author__ = "Tom Mladenov"
@@ -10,18 +9,11 @@ __author__ = "Tom Mladenov"
 import PyIndi
 import time
 import os
-import socket
 import sys
-from PyQt5.QtCore import (QCoreApplication, QObject, QRunnable, QThread, QThreadPool, pyqtSignal, )
-from PyQt5.QtWidgets import QApplication, QMainWindow, QDialog, QTableWidgetItem, QTableWidget
 from PyQt5.uic import loadUi
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QImage
-from PyQt5.QtGui import QPixmap, QStandardItemModel, QStandardItem
 from PyQt5 import QtGui
-import csv
 import datetime
-import keyboard
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -42,23 +34,21 @@ class IndiClient(PyIndi.BaseClient):
 
 	def newBLOB(self, bp):
 		#self.sender.newBlob.emit(bp)
-		self.sender.newPropertyValue(bp)
+		self.sender.newBLOB.emit(bp)
 
 	def newSwitch(self, svp):
 		#self.sender.newSwitch.emit(svp)
-		self.sender.newPropertyValue(svp)
+		self.sender.newSwitch.emit(svp)
 
 	def newNumber(self, nvp):
 		#self.sender.newNumber.emit(nvp)
-		self.sender.newPropertyValue(nvp)
+		self.sender.newNumber.emit(nvp)
 
 	def newText(self, tvp):
-		#self.sender.newText.emit(tvp)
-		self.sender.newPropertyValue(tvp)
+		self.sender.newText.emit(tvp)
 
 	def newLight(self, lvp):
-		#self.sender.newLight.emit(lvp)
-		self.sender.newPropertyValue(lvp)
+		self.sender.newLight.emit(lvp)
 
 	def newMessage(self, d, m):
 		self.sender.newMessage.emit(d, m)
@@ -77,10 +67,13 @@ class Main(QMainWindow):
 	host = None
 	port = None
 
+	connected = False
+
 	def __init__(self, parent = None):
 		super(Main, self).__init__(parent)
-		loadUi('simple_gui.ui', self)
-		self.setWindowTitle('indiviewer')
+		loadUi('indi-viewer.ui', self)
+		self.setWindowTitle('indi-viewer')
+		self.setFixedSize(self.size())
 		self.BUTTON_EXPANDALL.clicked.connect(self.expandAll)
 		self.BUTTON_COLLAPSEALL.clicked.connect(self.collapseAll)
 
@@ -93,33 +86,44 @@ class Main(QMainWindow):
 		self.indiclient.sender.newProperty.connect(self.newProperty)
 		self.indiclient.sender.removeProperty.connect(self.removeProperty)
 		self.indiclient.sender.newPropertyValue.connect(self.newPropertyValue)
-		#self.indiclient.sender.newBlob.connect(self.newBlob)
-		#self.indiclient.sender.newSwitch.connect(self.newSwitch)
-		#self.indiclient.sender.newNumber.connect(self.newNumber)
-		#self.indiclient.sender.newText.connect(self.newText)
-		#self.indiclient.sender.newLight.connect(self.newLight)
+		self.indiclient.sender.newBlob.connect(self.newBlob)
+		self.indiclient.sender.newSwitch.connect(self.newSwitch)
+		self.indiclient.sender.newNumber.connect(self.newNumber)
+		self.indiclient.sender.newText.connect(self.newText)
+
+		self.connect_button.clicked.connect(self.connect)
+		self.disconnect_button.clicked.connect(self.disconnect)
 
 		self.indiclient.sender.newMessage.connect(self.newMessage)
 		self.indiclient.sender.serverConnected.connect(self.serverConnected)
 
-	def connect(self):
-		host = self.host_box.text()
-		port = self.port_box.text()
-		self.indiclient.setServer(host, int(port))
-		succes = self.indiclient.connectServer()
-		if not succes:
-			self.link_label.setStyleSheet("background-color: rgb(255, 0, 0);")
-			self.link_label.setText('OFFLINE')
-		else:
+	def serverConnected(self, bool):
+		if bool:
 			self.link_label.setStyleSheet("background-color: rgb(0, 255, 0);")
 			self.link_label.setText('ONLINE')
+			self.connected = True
+		else:
+			self.link_label.setStyleSheet("background-color: rgb(255, 0, 0);")
+			self.link_label.setText('OFFLINE')
+			self.model.removeRows( 0, self.model.rowCount() )
+			self.treeview.setModel(self.model)
+			self.connected = False
+
+	def connect(self):
+		if not self.connected:
+			host = self.host_box.text()
+			port = self.port_box.text()
+			self.indiclient.setServer(host, int(port))
+			succes = self.indiclient.connectServer()
 			self.host = host
 			self.port = port
 
 	def disconnect(self):
-		self.indiclient.disconnectServer()
-		self.host = None
-		self.port = None
+		if self.connected:
+			succes = self.indiclient.disconnectServer()
+			if succes:
+				self.host = None
+				self.port = None
 
 	def expandAll(self):
 		self.treeview.expandAll()
@@ -140,7 +144,7 @@ class Main(QMainWindow):
 		#There will only be one device result so we extract it from the list of results
 		device = devices[0]
 
-		if p.getType()==PyIndi.INDI_TEXT:
+		if p.getType() == PyIndi.INDI_TEXT:
 			tpy=p.getText()
 			for t in tpy:
 				property.appendRow([QStandardItem(t.name), QStandardItem(t.text)])
@@ -183,7 +187,7 @@ class Main(QMainWindow):
 					device.removeRow(i)
 			self.treeview.setModel(self.model)
 
-	'''
+
 	def newBlob(self, bp):
 		pass
 
@@ -242,7 +246,7 @@ class Main(QMainWindow):
 						item.setChild(j, 1, QStandardItem(str(l.s)))
 						j = j + 1
 		self.treeview.setModel(self.model)
-		'''
+
 
 	def newPropertyValue(self, pv):
 		devices = self.model.findItems(pv.device, QtCore.Qt.MatchExactly)
@@ -270,13 +274,7 @@ class Main(QMainWindow):
 		self.treeview.setModel(self.model)
 
 	def newMessage(self, d, m):
-		self.LOGGING_MESSAGE.append("new Message "+ d.messageQueue(m))
-
-	def serverConnected(self, status):
-		if status:
-			self.LOGGING_MESSAGE.append("Connected to server!")
-		else:
-			self.LOGGING_MESSAGE.append("Disconnected from server!")
+		self.LOGGING_MESSAGE.append(d.messageQueue(m))
 
 
 class SenderObject(QtCore.QObject):

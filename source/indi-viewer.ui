@@ -24,15 +24,15 @@
      </rect>
     </property>
     <property name="title">
-     <string>GroupBox</string>
+     <string>Log</string>
     </property>
     <widget class="QTextBrowser" name="LOGGING_MESSAGE">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>20</y>
+       <y>30</y>
        <width>831</width>
-       <height>101</height>
+       <height>91</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -53,15 +53,15 @@
      <string notr="true">color: rgb(0, 0, 0);</string>
     </property>
     <property name="title">
-     <string>GroupBox</string>
+     <string>Properties</string>
     </property>
     <widget class="QTreeView" name="treeview">
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>30</y>
+       <y>40</y>
        <width>461</width>
-       <height>561</height>
+       <height>551</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -71,10 +71,10 @@
     <widget class="QPushButton" name="BUTTON_EXPANDALL">
      <property name="geometry">
       <rect>
-       <x>480</x>
-       <y>510</y>
-       <width>111</width>
-       <height>41</height>
+       <x>490</x>
+       <y>520</y>
+       <width>101</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="text">
@@ -84,10 +84,10 @@
     <widget class="QPushButton" name="BUTTON_COLLAPSEALL">
      <property name="geometry">
       <rect>
-       <x>480</x>
-       <y>550</y>
-       <width>111</width>
-       <height>41</height>
+       <x>490</x>
+       <y>560</y>
+       <width>101</width>
+       <height>31</height>
       </rect>
      </property>
      <property name="text">
@@ -105,12 +105,12 @@
      </rect>
     </property>
     <property name="title">
-     <string>Cllient</string>
+     <string>Client</string>
     </property>
-    <widget class="QPushButton" name="BUTTON_CONNECT">
+    <widget class="QPushButton" name="connect_button">
      <property name="geometry">
       <rect>
-       <x>4</x>
+       <x>14</x>
        <y>30</y>
        <width>101</width>
        <height>41</height>
@@ -120,12 +120,12 @@
       <string>CONNECT</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="BUTTON_DISCONNECT">
+    <widget class="QPushButton" name="disconnect_button">
      <property name="geometry">
       <rect>
-       <x>110</x>
+       <x>130</x>
        <y>30</y>
-       <width>121</width>
+       <width>101</width>
        <height>41</height>
       </rect>
      </property>
@@ -178,7 +178,7 @@
       <string notr="true">background-color: rgb(255, 255, 255);</string>
      </property>
      <property name="text">
-      <string>172.16.18.185</string>
+      <string>127.0.0.1</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_18">
@@ -207,7 +207,7 @@
       <string notr="true">background-color: rgb(255, 255, 255);</string>
      </property>
      <property name="text">
-      <string>1081</string>
+      <string>7624</string>
      </property>
     </widget>
    </widget>
